@@ -21,6 +21,7 @@ Otherwise, install the following dependencies manually:
 - Poetry 
 - Go
 - Zizmor
+- NodeJS
 - [Ades](https://github.com/ericcornelissen/ades#installation)
 
 3. Install project dependencies using Poetry.
@@ -34,5 +35,28 @@ poetry install
 cd argus
 poetry install
 cd ..
+```
+
+5. Install CodeQL
+
+```bash
+# 1. Create the target directory
+mkdir -p ~/codeql_home
+
+# 2. Download the latest CodeQL CLI bundle (Linux x64)
+cd /tmp
+curl -L -o codeql-linux64.zip \
+  https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql-linux64.zip
+
+# 3. Extract into ~/codeql_home/, produces ~/codeql_home/codeql/codeql
+unzip codeql-linux64.zip -d ~/codeql_home
+
+# 4. Verify
+ls -l ~/codeql_home/codeql/codeql
+~/codeql_home/codeql/codeql --version
+
+# 5. Install CodeQl Packages
+cd argus/qlqueries
+~/codeql_home/codeql/codeql pack install
 ```
 
