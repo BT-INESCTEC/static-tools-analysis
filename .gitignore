@@ -168,4 +168,4 @@ cython_debug/
 .direnv/
 analysis/results/
 argus/results/
-
+test_workflows/.benchmarkignore
