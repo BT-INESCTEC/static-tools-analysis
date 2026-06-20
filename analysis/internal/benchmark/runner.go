@@ -18,22 +18,22 @@ import (
 type Runner struct {
 	tools       []tool.Tool
 	rawDstatDir string
-	sarifDir    string
+	outputsDir  string
 }
 
 func NewRunner(tools []tool.Tool) *Runner {
 	return &Runner{
 		tools:       tools,
 		rawDstatDir: filepath.Join(config.ResultsDir, "raw_dstat"),
-		sarifDir:    filepath.Join(config.ResultsDir, "sarif_outputs"),
+		outputsDir:  filepath.Join(config.ResultsDir, "outputs"),
 	}
 }
 
 func (r *Runner) Run(targets []target.Target) error {
 	_ = os.MkdirAll(r.rawDstatDir, 0755)
-	_ = os.MkdirAll(r.sarifDir, 0755)
+	_ = os.MkdirAll(r.outputsDir, 0755)
 	for _, t := range targets {
-		_ = os.MkdirAll(filepath.Join(r.sarifDir, t.Name()), 0755)
+		_ = os.MkdirAll(filepath.Join(r.outputsDir, t.Name()), 0755)
 	}
 
 	if config.EnableDstat {
@@ -66,7 +66,7 @@ func (r *Runner) Run(targets []target.Target) error {
 
 	for _, tgt := range targets {
 		log.Printf("\n📁 Testing workflow: %s", tgt.Name())
-		outputDir := filepath.Join(r.sarifDir, tgt.Name())
+		outputDir := filepath.Join(r.outputsDir, tgt.Name())
 
 		for run := 1; run <= config.RunsPerWorkflow; run++ {
 			for _, tl := range r.tools {
@@ -130,10 +130,10 @@ func (r *Runner) Run(targets []target.Target) error {
 		log.Printf("   %s results saved to: %s", tl.Name(), filepath.Join(config.ResultsDir, fmt.Sprintf("benchmark_results_%s.csv", tl.Name())))
 	}
 	if config.SaveSARIF {
-		log.Printf("   SARIF outputs saved to: %s", r.sarifDir)
+		log.Printf("   SARIF outputs saved to: %s", r.outputsDir)
 	}
 	if config.SaveRawOutput {
-		log.Printf("   Raw outputs saved to: %s", r.sarifDir)
+		log.Printf("   Raw outputs saved to: %s", r.outputsDir)
 	}
 	if !config.SaveSARIF && !config.SaveRawOutput {
 		log.Println("   Output files: DISABLED (timing + metrics only)")
