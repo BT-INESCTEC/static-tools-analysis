@@ -19,7 +19,7 @@ jobs:
         run: |
           echo NAMESPACE=$(echo ${{ github.event.comment.body }} | cut -d' ' -f2) >> $GITHUB_ENV
 
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@main
         with:
           version: '270.0.0'
           service_account_key: ${{ secrets.GCR_KEY }}
