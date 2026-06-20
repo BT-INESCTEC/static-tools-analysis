@@ -21,6 +21,7 @@ Otherwise, install the following dependencies manually:
 - Poetry 
 - Go
 - Zizmor
+- [Ades](https://github.com/ericcornelissen/ades#installation)
 
 3. Install project dependencies using Poetry.
 ```bash
