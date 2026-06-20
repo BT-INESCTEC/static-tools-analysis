@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"argus-benchmark/internal/config"
 	"argus-benchmark/internal/target"
 )
 
@@ -15,19 +16,24 @@ type Argus struct{}
 func (a *Argus) Name() string { return "argus" }
 
 func (a *Argus) Run(t target.Target, outputDir string) (*Result, error) {
-	outputFile, err := filepath.Abs(filepath.Join(outputDir, "argus.sarif"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute path for output file: %w", err)
-	}
-
-	cmd := exec.Command("poetry", "run", "python3", "argus.py",
+	args := []string{"run", "python3", "argus.py",
 		"--mode", "file",
 		"--file", t.Path(),
-		"--output", outputFile,
-	)
+	}
+
+	if config.SaveSARIF {
+		outputFile, err := filepath.Abs(filepath.Join(outputDir, "argus.sarif"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get absolute path for output file: %w", err)
+		}
+		args = append(args, "--output", outputFile)
+	}
+
+	cmd := exec.Command("poetry", args...)
 	cmd.Dir = filepath.Join("..", "argus")
 
-	var stderrBuf strings.Builder
+	var stdoutBuf, stderrBuf strings.Builder
+	cmd.Stdout = &stdoutBuf
 	cmd.Stderr = &stderrBuf
 
 	start := time.Now()
@@ -43,12 +49,13 @@ func (a *Argus) Run(t target.Target, outputDir string) (*Result, error) {
 	return &Result{
 		ExecutionTime: elapsed,
 		Timestamp:     time.Now().Format("2006-01-02_15-04-05"),
+		Stdout:        stdoutBuf.String(),
+		Stderr:        stderrBuf.String(),
 	}, nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+// WriteSARIF is a no-op for argus: argus writes the SARIF file itself in Run
+// when config.SaveSARIF is true.
+func (a *Argus) WriteSARIF(_ target.Target, _ string, _ *Result) error {
+	return nil
 }

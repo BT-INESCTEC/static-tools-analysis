@@ -9,9 +9,12 @@ type Result struct {
 	Metrics       map[string]float64 // avg_cpu, peak_memory, etc.
 	Timestamp     string
 	Error         error
+	Stdout        string
+	Stderr        string
 }
 
 type Tool interface {
 	Name() string
 	Run(t target.Target, outputDir string) (*Result, error)
+	WriteSARIF(t target.Target, outputDir string, r *Result) error
 }

@@ -41,27 +41,30 @@ func (a *Ades) Run(t target.Target, outputDir string) (*Result, error) {
 		} else {
 			stderrOutput := stderrBuf.String()
 			if stderrOutput != "" {
-				return nil, fmt.Errorf("ades failed: %w (stderr: %s)", runErr, stderrOutput[:min(len(stderrOutput), 200)])
+				return nil, fmt.Errorf("ades failed: %w (stderr: %s)", runErr, stderrOutput[:min(200, len(stderrOutput))])
 			}
 			return nil, fmt.Errorf("ades failed: %w", runErr)
 		}
 	}
 
-	stdout := stdoutBuf.String()
-	findings, err := parseAdesOutput(stdout)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ades output: %w", err)
-	}
-
-	sarifPath := filepath.Join(outputDir, "ades.sarif")
-	if err := writeAdesSARIF(sarifPath, t, findings); err != nil {
-		return nil, fmt.Errorf("failed to write ades SARIF: %w", err)
-	}
-
 	return &Result{
 		ExecutionTime: elapsed,
 		Timestamp:     time.Now().Format("2006-01-02_15-04-05"),
+		Stdout:        stdoutBuf.String(),
+		Stderr:        stderrBuf.String(),
 	}, nil
+}
+
+func (a *Ades) WriteSARIF(t target.Target, outputDir string, r *Result) error {
+	findings, err := parseAdesOutput(r.Stdout)
+	if err != nil {
+		return fmt.Errorf("failed to parse ades output: %w", err)
+	}
+	sarifPath := filepath.Join(outputDir, "ades.sarif")
+	if err := writeAdesSARIF(sarifPath, t, findings); err != nil {
+		return fmt.Errorf("failed to write ades SARIF: %w", err)
+	}
+	return nil
 }
 
 // findAdesBinary locates the ades executable.
@@ -93,9 +96,9 @@ type adesFinding struct {
 }
 
 var (
-	totalRe  = regexp.MustCompile(`^Detected (\d+) violation\(s\) in "([^"]+)":`)
-	jobRe    = regexp.MustCompile(`^\s*(\d+) in job "([^"]+)"\s*:\s*$`)
-	stepRe   = regexp.MustCompile(`^\s+step "([^"]+)" contains "([^"]+)" \(([A-Z0-9]+)\)$`)
+	totalRe = regexp.MustCompile(`^Detected (\d+) violation\(s\) in "([^"]+)":`)
+	jobRe   = regexp.MustCompile(`^\s*(\d+) in job "([^"]+)"\s*:\s*$`)
+	stepRe  = regexp.MustCompile(`^\s+step "([^"]+)" contains "([^"]+)" \(([A-Z0-9]+)\)$`)
 )
 
 func parseAdesOutput(output string) ([]adesFinding, error) {

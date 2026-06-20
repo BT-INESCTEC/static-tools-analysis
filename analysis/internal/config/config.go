@@ -14,6 +14,8 @@ const (
 	DstatPreDelay   = 1 * time.Second
 	DstatPostDelay  = 1 * time.Second
 	BaselineDuration = 10 * time.Second
+	SaveSARIF       = true
+	SaveRawOutput   = true
 )
 
 var (

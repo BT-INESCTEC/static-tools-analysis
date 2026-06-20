@@ -23,6 +23,16 @@ func main() {
 	} else {
 		log.Println("dstat resource monitoring: DISABLED (timing only)")
 	}
+	switch {
+	case config.SaveSARIF && config.SaveRawOutput:
+		log.Println("output saving: SARIF + raw stdout/stderr")
+	case config.SaveSARIF:
+		log.Println("output saving: SARIF only")
+	case config.SaveRawOutput:
+		log.Println("output saving: raw stdout/stderr only")
+	default:
+		log.Println("output saving: DISABLED (timing + metrics only)")
+	}
 	log.Printf("Testing with %d runs each using %d tools", config.RunsPerWorkflow, len(tool.Registry))
 
 	var tools []tool.Tool

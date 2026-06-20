@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"argus-benchmark/internal/config"
@@ -104,6 +105,19 @@ func (r *Runner) Run(targets []target.Target) error {
 					}
 				}
 
+				if config.SaveSARIF {
+					if err := tl.WriteSARIF(tgt, outputDir, res); err != nil {
+						log.Printf("    ⚠️  Failed to write %s SARIF: %v", tl.Name(), err)
+					}
+				}
+
+				if config.SaveRawOutput {
+					rawPath := filepath.Join(outputDir, fmt.Sprintf("%s.raw.txt", tl.Name()))
+					if err := os.WriteFile(rawPath, []byte(buildRawOutput(res)), 0644); err != nil {
+						log.Printf("    ⚠️  Failed to write %s raw output: %v", tl.Name(), err)
+					}
+				}
+
 				log.Printf("    ✅ %s completed in %.2fs", tl.Name(), res.ExecutionTime)
 			}
 
@@ -115,6 +129,34 @@ func (r *Runner) Run(targets []target.Target) error {
 	for _, tl := range r.tools {
 		log.Printf("   %s results saved to: %s", tl.Name(), filepath.Join(config.ResultsDir, fmt.Sprintf("benchmark_results_%s.csv", tl.Name())))
 	}
-	log.Printf("   SARIF outputs saved to: %s\n", r.sarifDir)
+	if config.SaveSARIF {
+		log.Printf("   SARIF outputs saved to: %s", r.sarifDir)
+	}
+	if config.SaveRawOutput {
+		log.Printf("   Raw outputs saved to: %s", r.sarifDir)
+	}
+	if !config.SaveSARIF && !config.SaveRawOutput {
+		log.Println("   Output files: DISABLED (timing + metrics only)")
+	}
+	fmt.Println()
 	return nil
+}
+
+func buildRawOutput(r *tool.Result) string {
+	var b strings.Builder
+	if r.Stdout != "" {
+		b.WriteString("=== STDOUT ===\n")
+		b.WriteString(r.Stdout)
+		if !strings.HasSuffix(r.Stdout, "\n") {
+			b.WriteString("\n")
+		}
+	}
+	if r.Stderr != "" {
+		b.WriteString("=== STDERR ===\n")
+		b.WriteString(r.Stderr)
+		if !strings.HasSuffix(r.Stderr, "\n") {
+			b.WriteString("\n")
+		}
+	}
+	return b.String()
 }
