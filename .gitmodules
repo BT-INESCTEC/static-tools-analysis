@@ -1,0 +1,3 @@
+[submodule "Argus"]
+	path = argus
+	url = https://github.com/BT-INESCTEC/Argus
